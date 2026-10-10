@@ -14,6 +14,14 @@ class MongodbMessage implements Message
     private $id;
 
     /**
+     * Claim identifier set when a consumer picks the message up.
+     * Used to delete exactly the claimed document on acknowledge.
+     *
+     * @var string|null
+     */
+    private $deliveryId = null;
+
+    /**
      * @var string
      */
     private $body;
@@ -73,6 +81,16 @@ class MongodbMessage implements Message
     public function getId(): ?string
     {
         return $this->id;
+    }
+
+    public function setDeliveryId(?string $deliveryId = null): void
+    {
+        $this->deliveryId = $deliveryId;
+    }
+
+    public function getDeliveryId(): ?string
+    {
+        return $this->deliveryId;
     }
 
     public function setBody(string $body): void

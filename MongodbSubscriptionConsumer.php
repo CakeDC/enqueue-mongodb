@@ -9,6 +9,8 @@ use Interop\Queue\SubscriptionConsumer;
 
 class MongodbSubscriptionConsumer implements SubscriptionConsumer
 {
+    use MongodbConsumerHelperTrait;
+
     /**
      * @var MongodbContext
      */
@@ -21,10 +23,22 @@ class MongodbSubscriptionConsumer implements SubscriptionConsumer
      */
     private $subscribers;
 
+    /**
+     * Seconds after which an un-acked claim becomes available again.
+     *
+     * @var int
+     */
+    private $redeliveryDelay = 1200;
+
     public function __construct(MongodbContext $context)
     {
         $this->context = $context;
         $this->subscribers = [];
+    }
+
+    protected function getContext(): MongodbContext
+    {
+        return $this->context;
     }
 
     public function consume(int $timeout = 0): void
@@ -47,19 +61,10 @@ class MongodbSubscriptionConsumer implements SubscriptionConsumer
                 $currentQueueNames = $queueNames;
             }
 
-            $result = $this->context->getCollection()->findOneAndDelete(
-                [
-                    'queue' => ['$in' => array_keys($currentQueueNames)],
-                    '$or' => [
-                        ['delayed_until' => ['$exists' => false]],
-                        ['delayed_until' => ['$lte' => time()]],
-                    ],
-                ],
-                [
-                    'sort' => ['priority' => -1, 'published_at' => 1],
-                    'typeMap' => ['root' => 'array', 'document' => 'array'],
-                ]
-            );
+            $this->removeExpiredMessages();
+            $this->redeliverMessages();
+
+            $result = $this->claimMessage($currentQueueNames, $this->redeliveryDelay);
 
             if ($result) {
                 list($consumer, $callback) = $this->subscribers[$result['queue']];

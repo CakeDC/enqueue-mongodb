@@ -11,6 +11,8 @@ use Interop\Queue\Queue;
 
 class MongodbConsumer implements Consumer
 {
+    use MongodbConsumerHelperTrait;
+
     /**
      * @var MongodbContext
      */
@@ -25,6 +27,13 @@ class MongodbConsumer implements Consumer
      * @var int microseconds
      */
     private $pollingInterval;
+
+    /**
+     * Seconds after which an un-acked claim becomes available again.
+     *
+     * @var int
+     */
+    private $redeliveryDelay = 1200;
 
     public function __construct(MongodbContext $context, MongodbDestination $queue)
     {
@@ -98,7 +107,9 @@ class MongodbConsumer implements Consumer
      */
     public function acknowledge(Message $message): void
     {
-        // does nothing
+        InvalidMessageException::assertMessageInstanceOf($message, MongodbMessage::class);
+
+        $this->deleteMessage((string) $message->getDeliveryId());
     }
 
     /**
@@ -108,39 +119,29 @@ class MongodbConsumer implements Consumer
     {
         InvalidMessageException::assertMessageInstanceOf($message, MongodbMessage::class);
 
+        $deliveryId = (string) $message->getDeliveryId();
         if ($requeue) {
+            $message = clone $message;
             $message->setRedelivered(true);
+            $message->setDeliveryId(null);
             $this->context->createProducer()->send($this->queue, $message);
-
-            return;
         }
+
+        $this->deleteMessage($deliveryId);
+    }
+
+    protected function getContext(): MongodbContext
+    {
+        return $this->context;
     }
 
     private function receiveMessage(): ?MongodbMessage
     {
-        $now = time();
-        $collection = $this->context->getCollection();
-        $message = $collection->findOneAndDelete(
-            [
-                'queue' => $this->queue->getName(),
-                '$or' => [
-                    ['delayed_until' => ['$exists' => false]],
-                    ['delayed_until' => ['$lte' => $now]],
-                ],
-            ],
-            [
-                'sort' => ['priority' => -1, 'published_at' => 1],
-                'typeMap' => ['root' => 'array', 'document' => 'array'],
-            ]
-        );
-
-        if (!$message) {
+        $document = $this->claimMessage([$this->queue->getName()], $this->redeliveryDelay);
+        if (!$document) {
             return null;
         }
-        if (empty($message['time_to_live']) || $message['time_to_live'] > time()) {
-            return $this->context->convertMessage($message);
-        }
 
-        return null;
+        return $this->context->convertMessage($document);
     }
 }

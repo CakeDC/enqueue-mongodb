@@ -73,11 +73,12 @@ class MongodbContextTest extends TestCase
         $arrayData = [
             '_id' => 'stringId',
             'body' => 'theBody',
-            'properties' => json_encode(['barProp' => 'barPropVal']),
-            'headers' => json_encode(['fooHeader' => 'fooHeaderVal']),
+            'properties' => ['barProp' => 'barPropVal'],
+            'headers' => ['fooHeader' => 'fooHeaderVal'],
             'priority' => '12',
             'published_at' => 1525935820,
             'redelivered' => false,
+            'delivery_id' => 'deliveryId',
         ];
 
         $context = new MongodbContext($this->createClientMock());
@@ -92,6 +93,7 @@ class MongodbContextTest extends TestCase
         $this->assertEquals(12, $message->getPriority());
         $this->assertEquals(1525935820, $message->getPublishedAt());
         $this->assertFalse($message->isRedelivered());
+        $this->assertEquals('deliveryId', $message->getDeliveryId());
     }
 
     public function testShouldCreateTopic()

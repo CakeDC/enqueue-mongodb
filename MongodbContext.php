@@ -116,14 +116,17 @@ class MongodbContext implements Context
     {
         $mongodbMessageObj = $this->createMessage(
             $mongodbMessage['body'],
-            JSON::decode($mongodbMessage['properties']),
-            JSON::decode($mongodbMessage['headers'])
+            $mongodbMessage['properties'],
+            $mongodbMessage['headers']
         );
 
         $mongodbMessageObj->setId((string) $mongodbMessage['_id']);
         $mongodbMessageObj->setPriority((int) $mongodbMessage['priority']);
         $mongodbMessageObj->setRedelivered((bool) $mongodbMessage['redelivered']);
         $mongodbMessageObj->setPublishedAt((int) $mongodbMessage['published_at']);
+        if (isset($mongodbMessage['delivery_id']) && is_string($mongodbMessage['delivery_id'])) {
+            $mongodbMessageObj->setDeliveryId($mongodbMessage['delivery_id']);
+        }
 
         return $mongodbMessageObj;
     }
@@ -159,8 +162,24 @@ class MongodbContext implements Context
     {
         $collection = $this->getCollection();
         $collection->createIndex(['queue' => 1], ['name' => 'enqueue_queue']);
-        $collection->createIndex(['priority' => -1, 'published_at' => 1], ['name' => 'enqueue_priority']);
+        $collection->createIndex(['delivery_id' => 1], ['name' => 'enqueue_delivery']);
         $collection->createIndex(['delayed_until' => 1], ['name' => 'enqueue_delayed']);
-        $collection->createIndex(['queue' => 1, 'priority' => -1, 'published_at' => 1, 'delayed_until' => 1], ['name' => 'enqueue_combined']);
+        $collection->createIndex(
+            ['queue' => 1, 'delivery_id' => 1, 'priority' => -1, 'published_at' => 1],
+            ['name' => 'enqueue_claim']
+        );
+        $collection->createIndex(['redeliver_after' => 1], ['name' => 'enqueue_redeliver']);
+        $collection->createIndex(['time_to_live' => 1], ['name' => 'enqueue_ttl']);
+
+        foreach (static::$extraIndices as $extraIndex) {
+            $collection->createIndex($extraIndex[0], $extraIndex[1]);
+        }
+    }
+
+    private static $extraIndices = [];
+
+    public static function setExtraIndices(array $indices): void
+    {
+        static::$extraIndices = $indices;
     }
 }

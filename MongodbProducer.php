@@ -67,11 +67,13 @@ class MongodbProducer implements Producer
         $mongoMessage = [
             'published_at' => $publishedAt,
             'body' => $body,
-            'headers' => JSON::encode($message->getHeaders()),
-            'properties' => JSON::encode($message->getProperties()),
+            'headers' => $message->getHeaders(),
+            'properties' => $message->getProperties(),
             'priority' => $message->getPriority(),
             'queue' => $destination->getName(),
             'redelivered' => $message->isRedelivered(),
+            'delivery_id' => null,
+            'redeliver_after' => 0,
         ];
 
         $delay = $message->getDeliveryDelay();
@@ -85,6 +87,8 @@ class MongodbProducer implements Producer
             }
 
             $mongoMessage['delayed_until'] = time() + (int) $delay / 1000;
+        } else {
+            $mongoMessage['delayed_until'] = -$message->getPriority();
         }
 
         $timeToLive = $message->getTimeToLive();

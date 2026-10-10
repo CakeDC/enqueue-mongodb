@@ -11,6 +11,7 @@ use Enqueue\Test\ClassExtensionTrait;
 use Interop\Queue\Consumer;
 use Interop\Queue\Exception\InvalidMessageException;
 use Interop\Queue\Message;
+use MongoDB\Collection;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -34,13 +35,26 @@ class MongodbConsumerTest extends TestCase
         $this->assertSame($destination, $consumer->getQueue());
     }
 
-    /**
-     * @doesNotPerformAssertions
-     */
     public function testCouldCallAcknowledgedMethod()
     {
-        $consumer = new MongodbConsumer($this->createContextMock(), new MongodbDestination('queue'));
-        $consumer->acknowledge(new MongodbMessage());
+        $message = new MongodbMessage();
+        $message->setDeliveryId('theDeliveryId');
+
+        $collectionMock = $this->createMock(Collection::class);
+        $collectionMock
+            ->expects($this->once())
+            ->method('deleteOne')
+            ->with(['delivery_id' => 'theDeliveryId'])
+        ;
+
+        $context = $this->createContextMock();
+        $context
+            ->method('getCollection')
+            ->willReturn($collectionMock)
+        ;
+
+        $consumer = new MongodbConsumer($context, new MongodbDestination('queue'));
+        $consumer->acknowledge($message);
     }
 
     public function testCouldSetAndGetPollingInterval()
@@ -72,15 +86,28 @@ class MongodbConsumerTest extends TestCase
 
         $message = new MongodbMessage();
         $message->setBody('theBody');
+        $message->setDeliveryId('theDeliveryId');
+
+        $collectionMock = $this->createMock(Collection::class);
+        $collectionMock
+            ->expects($this->once())
+            ->method('deleteOne')
+            ->with(['delivery_id' => 'theDeliveryId'])
+        ;
 
         $context = $this->createContextMock();
         $context
             ->expects($this->never())
             ->method('createProducer')
         ;
+        $context
+            ->method('getCollection')
+            ->willReturn($collectionMock)
+        ;
 
         $consumer = new MongodbConsumer($context, $queue);
 
+        // Reject without requeue deletes the claim and sends nothing.
         $consumer->reject($message);
     }
 
@@ -90,12 +117,29 @@ class MongodbConsumerTest extends TestCase
 
         $message = new MongodbMessage();
         $message->setBody('theBody');
+        $message->setDeliveryId('theDeliveryId');
 
         $producerMock = $this->createProducerMock();
         $producerMock
             ->expects($this->once())
             ->method('send')
-            ->with($this->identicalTo($queue), $this->identicalTo($message))
+            ->with(
+                $this->identicalTo($queue),
+                $this->callback(function (MongodbMessage $sent) use ($message): bool {
+                    // A copy is resent: same body, marked redelivered, claim released.
+                    return $sent !== $message
+                        && $sent->getBody() === 'theBody'
+                        && $sent->isRedelivered()
+                        && $sent->getDeliveryId() === null;
+                })
+            )
+        ;
+
+        $collectionMock = $this->createMock(Collection::class);
+        $collectionMock
+            ->expects($this->once())
+            ->method('deleteOne')
+            ->with(['delivery_id' => 'theDeliveryId'])
         ;
 
         $context = $this->createContextMock();
@@ -103,6 +147,10 @@ class MongodbConsumerTest extends TestCase
             ->expects($this->once())
             ->method('createProducer')
             ->willReturn($producerMock)
+        ;
+        $context
+            ->method('getCollection')
+            ->willReturn($collectionMock)
         ;
 
         $consumer = new MongodbConsumer($context, $queue);
