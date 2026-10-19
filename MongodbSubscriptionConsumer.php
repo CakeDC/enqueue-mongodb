@@ -36,6 +36,22 @@ class MongodbSubscriptionConsumer implements SubscriptionConsumer
         $this->subscribers = [];
     }
 
+    /**
+     * Set redelivery delay in seconds.
+     */
+    public function setRedeliveryDelay(int $seconds): void
+    {
+        $this->redeliveryDelay = $seconds;
+    }
+
+    /**
+     * Get redelivery delay in seconds.
+     */
+    public function getRedeliveryDelay(): int
+    {
+        return $this->redeliveryDelay;
+    }
+
     protected function getContext(): MongodbContext
     {
         return $this->context;

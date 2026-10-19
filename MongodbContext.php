@@ -35,6 +35,7 @@ class MongodbContext implements Context
             'dbname' => 'enqueue',
             'collection_name' => 'enqueue',
             'polling_interval' => null,
+            'redelivery_delay' => 1200,
         ], $config);
 
         $this->client = $client;
@@ -97,6 +98,10 @@ class MongodbContext implements Context
             $consumer->setPollingInterval($this->config['polling_interval']);
         }
 
+        if (isset($this->config['redelivery_delay'])) {
+            $consumer->setRedeliveryDelay($this->config['redelivery_delay']);
+        }
+
         return $consumer;
     }
 
@@ -106,7 +111,13 @@ class MongodbContext implements Context
 
     public function createSubscriptionConsumer(): SubscriptionConsumer
     {
-        return new MongodbSubscriptionConsumer($this);
+        $consumer = new MongodbSubscriptionConsumer($this);
+
+        if (isset($this->config['redelivery_delay'])) {
+            $consumer->setRedeliveryDelay($this->config['redelivery_delay']);
+        }
+
+        return $consumer;
     }
 
     /**

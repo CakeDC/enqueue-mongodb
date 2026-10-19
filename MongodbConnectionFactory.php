@@ -23,11 +23,14 @@ class MongodbConnectionFactory implements ConnectionFactory
      *   'dbname' => 'enqueue',          - database name.
      *   'collection_name' => 'enqueue'  - collection name
      *   'polling_interval' => '1000',   - How often query for new messages (milliseconds)
+     *   'redelivery_delay' => '1200',   - Seconds after which an un-acked claim becomes available again
      * ]
      *
      * or
      *
-     * mongodb://127.0.0.1:27017/defaultauthdb?polling_interval=1000&enqueue_database=enqueue&enqueue_collection=enqueue
+     * mongodb://127.0.0.1:27017/defaultauthdb?polling_interval=1000&enqueue_database=enqueue&enqueue_collection=enqueue&redelivery_delay=1200
+     *
+     * `collection_name` is accepted as a DSN query alias of `enqueue_collection`.
      *
      * @param array|string|null $config
      */
@@ -101,8 +104,13 @@ class MongodbConnectionFactory implements ConnectionFactory
             if (!empty($queryParts['polling_interval'])) {
                 $config['polling_interval'] = (int) $queryParts['polling_interval'];
             }
+            if (!empty($queryParts['redelivery_delay']) && (int) $queryParts['redelivery_delay'] > 0) {
+                $config['redelivery_delay'] = (int) $queryParts['redelivery_delay'];
+            }
             if (!empty($queryParts['enqueue_collection'])) {
                 $config['collection_name'] = $queryParts['enqueue_collection'];
+            } elseif (!empty($queryParts['collection_name'])) {
+                $config['collection_name'] = $queryParts['collection_name'];
             }
             if (!empty($queryParts['enqueue_database'])) {
                 $config['dbname'] = $queryParts['enqueue_database'];

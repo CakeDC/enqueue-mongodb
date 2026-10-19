@@ -37,6 +37,7 @@ class MongodbContextTest extends TestCase
             'dbname' => 'enqueue',
             'collection_name' => 'enqueue',
             'polling_interval' => null,
+            'redelivery_delay' => 1200,
         ], 'config', $context);
     }
 
@@ -52,6 +53,7 @@ class MongodbContextTest extends TestCase
             'dbname' => 'testDbName',
             'collection_name' => 'testCollectionName',
             'polling_interval' => 123456,
+            'redelivery_delay' => 1200,
         ], 'config', $client);
     }
 
@@ -140,6 +142,39 @@ class MongodbContextTest extends TestCase
         $this->assertEquals(123456, $consumer->getPollingInterval());
     }
 
+    public function testShouldCreateMessageConsumerWithDefaultRedeliveryDelay()
+    {
+        $context = new MongodbContext($this->createClientMock());
+
+        $consumer = $context->createConsumer(new MongodbDestination(''));
+
+        $this->assertInstanceOf(MongodbConsumer::class, $consumer);
+        $this->assertEquals(1200, $consumer->getRedeliveryDelay());
+    }
+
+    public function testShouldCreateMessageConsumerAndSetRedeliveryDelay()
+    {
+        $context = new MongodbContext($this->createClientMock(), [
+            'redelivery_delay' => 7200,
+        ]);
+
+        $consumer = $context->createConsumer(new MongodbDestination(''));
+
+        $this->assertInstanceOf(MongodbConsumer::class, $consumer);
+        $this->assertEquals(7200, $consumer->getRedeliveryDelay());
+    }
+
+    public function testShouldCreateSubscriptionConsumerAndSetRedeliveryDelay()
+    {
+        $context = new MongodbContext($this->createClientMock(), [
+            'redelivery_delay' => 7200,
+        ]);
+
+        $consumer = $context->createSubscriptionConsumer();
+
+        $this->assertEquals(7200, $consumer->getRedeliveryDelay());
+    }
+
     public function testShouldThrowIfDestinationIsInvalidInstanceType()
     {
         $this->expectException(InvalidDestinationException::class);
@@ -169,6 +204,7 @@ class MongodbContextTest extends TestCase
             'dbname' => 'enqueue',
             'collection_name' => 'enqueue',
             'polling_interval' => null,
+            'redelivery_delay' => 1200,
         ], $context->getConfig());
     }
 

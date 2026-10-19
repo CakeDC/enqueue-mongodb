@@ -60,6 +60,22 @@ class MongodbConsumer implements Consumer
     }
 
     /**
+     * Set redelivery delay in seconds.
+     */
+    public function setRedeliveryDelay(int $seconds): void
+    {
+        $this->redeliveryDelay = $seconds;
+    }
+
+    /**
+     * Get redelivery delay in seconds.
+     */
+    public function getRedeliveryDelay(): int
+    {
+        return $this->redeliveryDelay;
+    }
+
+    /**
      * @return MongodbDestination
      */
     public function getQueue(): Queue

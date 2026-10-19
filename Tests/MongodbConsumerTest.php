@@ -67,6 +67,21 @@ class MongodbConsumerTest extends TestCase
         $this->assertEquals(123456, $consumer->getPollingInterval());
     }
 
+    public function testRedeliveryDelayDefaultsTo1200()
+    {
+        $consumer = new MongodbConsumer($this->createContextMock(), new MongodbDestination('queue'));
+
+        $this->assertEquals(1200, $consumer->getRedeliveryDelay());
+    }
+
+    public function testCouldSetAndGetRedeliveryDelay()
+    {
+        $consumer = new MongodbConsumer($this->createContextMock(), new MongodbDestination('queue'));
+        $consumer->setRedeliveryDelay(7200);
+
+        $this->assertEquals(7200, $consumer->getRedeliveryDelay());
+    }
+
     public function testRejectShouldThrowIfInstanceOfMessageIsInvalid()
     {
         $this->expectException(InvalidMessageException::class);
