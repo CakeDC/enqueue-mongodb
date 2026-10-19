@@ -11,6 +11,7 @@ use Enqueue\Test\ReadAttributeTrait;
 use Interop\Queue\Consumer;
 use Interop\Queue\Queue;
 use Interop\Queue\SubscriptionConsumer;
+use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\TestCase;
 
 class MongodbSubscriptionConsumerTest extends TestCase
@@ -60,9 +61,7 @@ class MongodbSubscriptionConsumerTest extends TestCase
         $subscriptionConsumer->subscribe($barConsumer, $barCallback);
     }
 
-    /**
-     * @doesNotPerformAssertions
-     */
+    #[DoesNotPerformAssertions]
     public function testShouldAllowSubscribeSameConsumerAndCallbackSecondTime()
     {
         $subscriptionConsumer = new MongodbSubscriptionConsumer($this->createMongodbContextMock());
@@ -146,29 +145,27 @@ class MongodbSubscriptionConsumerTest extends TestCase
     }
 
     /**
-     * @return MongodbContext|\PHPUnit\Framework\MockObject\MockObject
+     * @return MongodbContext|\PHPUnit\Framework\MockObject\Stub
      */
     private function createMongodbContextMock()
     {
-        return $this->createMock(MongodbContext::class);
+        return $this->createStub(MongodbContext::class);
     }
 
     /**
      * @param mixed|null $queueName
      *
-     * @return Consumer|\PHPUnit\Framework\MockObject\MockObject
+     * @return Consumer|\PHPUnit\Framework\MockObject\Stub
      */
     private function createConsumerStub($queueName = null)
     {
-        $queueMock = $this->createMock(Queue::class);
+        $queueMock = $this->createStub(Queue::class);
         $queueMock
-            ->expects($this->any())
             ->method('getQueueName')
             ->willReturn($queueName);
 
-        $consumerMock = $this->createMock(MongodbConsumer::class);
+        $consumerMock = $this->createStub(MongodbConsumer::class);
         $consumerMock
-            ->expects($this->any())
             ->method('getQueue')
             ->willReturn($queueMock)
         ;

@@ -7,11 +7,10 @@ use Enqueue\Mongodb\MongodbMessage;
 use Enqueue\Test\MongodbExtensionTrait;
 use Interop\Queue\Context;
 use Interop\Queue\Spec\SendAndReceivePriorityMessagesFromQueueSpec;
+use PHPUnit\Framework\Attributes\Group;
 
-/**
- * @group functional
- * @group mongodb
- */
+#[Group('functional')]
+#[Group('mongodb')]
 class MongodbSendAndReceivePriorityMessagesFromQueueTest extends SendAndReceivePriorityMessagesFromQueueSpec
 {
     use MongodbExtensionTrait;

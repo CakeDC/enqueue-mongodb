@@ -5,11 +5,10 @@ namespace Enqueue\Mongodb\Tests\Functional;
 use Enqueue\Mongodb\MongodbContext;
 use Enqueue\Mongodb\MongodbMessage;
 use Enqueue\Test\MongodbExtensionTrait;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @group functional
- */
+#[Group('functional')]
 class MongodbConsumerTest extends TestCase
 {
     use MongodbExtensionTrait;

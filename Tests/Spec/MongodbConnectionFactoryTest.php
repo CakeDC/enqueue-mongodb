@@ -4,10 +4,9 @@ namespace Enqueue\Mongodb\Tests\Spec;
 
 use Enqueue\Mongodb\MongodbConnectionFactory;
 use Interop\Queue\Spec\ConnectionFactorySpec;
+use PHPUnit\Framework\Attributes\Group;
 
-/**
- * @group mongodb
- */
+#[Group('mongodb')]
 class MongodbConnectionFactoryTest extends ConnectionFactorySpec
 {
     protected function createConnectionFactory()

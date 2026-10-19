@@ -14,11 +14,10 @@ use Interop\Queue\Destination;
 use Interop\Queue\Exception\InvalidDestinationException;
 use Interop\Queue\Exception\TemporaryQueueNotSupportedException;
 use MongoDB\Client;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @group mongodb
- */
+#[Group('mongodb')]
 class MongodbContextTest extends TestCase
 {
     use ClassExtensionTrait;
@@ -218,11 +217,11 @@ class MongodbContextTest extends TestCase
     }
 
     /**
-     * @return \PHPUnit\Framework\MockObject\MockObject|Client
+     * @return \PHPUnit\Framework\MockObject\Stub|Client
      */
     private function createClientMock()
     {
-        return $this->createMock(Client::class);
+        return $this->createStub(Client::class);
     }
 }
 

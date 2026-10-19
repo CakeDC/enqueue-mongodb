@@ -9,11 +9,10 @@ use Enqueue\Mongodb\MongodbDestination;
 use Enqueue\Test\MongodbExtensionTrait;
 use Interop\Queue\Context;
 use Interop\Queue\Spec\SubscriptionConsumerConsumeFromAllSubscribedQueuesSpec;
+use PHPUnit\Framework\Attributes\Group;
 
-/**
- * @group functional
- * @group Mongodb
- */
+#[Group('functional')]
+#[Group('mongodb')]
 class MongodbSubscriptionConsumerConsumeFromAllSubscribedQueuesTest extends SubscriptionConsumerConsumeFromAllSubscribedQueuesSpec
 {
     use MongodbExtensionTrait;

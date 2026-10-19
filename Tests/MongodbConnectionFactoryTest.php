@@ -7,11 +7,10 @@ use Enqueue\Mongodb\MongodbContext;
 use Enqueue\Test\ClassExtensionTrait;
 use Enqueue\Test\ReadAttributeTrait;
 use Interop\Queue\ConnectionFactory;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @group mongodb
- */
+#[Group('mongodb')]
 class MongodbConnectionFactoryTest extends TestCase
 {
     use ClassExtensionTrait;

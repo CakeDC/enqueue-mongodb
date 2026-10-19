@@ -4,10 +4,9 @@ namespace Enqueue\Mongodb\Tests\Spec;
 
 use Enqueue\Mongodb\MongodbDestination;
 use Interop\Queue\Spec\TopicSpec;
+use PHPUnit\Framework\Attributes\Group;
 
-/**
- * @group mongodb
- */
+#[Group('mongodb')]
 class MongodbTopicTest extends TopicSpec
 {
     protected function createTopic()

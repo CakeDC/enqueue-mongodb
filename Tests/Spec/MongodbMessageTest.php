@@ -4,10 +4,9 @@ namespace Enqueue\Mongodb\Tests\Spec;
 
 use Enqueue\Mongodb\MongodbMessage;
 use Interop\Queue\Spec\MessageSpec;
+use PHPUnit\Framework\Attributes\Group;
 
-/**
- * @group mongodb
- */
+#[Group('mongodb')]
 class MongodbMessageTest extends MessageSpec
 {
     protected function createMessage()

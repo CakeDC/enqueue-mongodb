@@ -9,11 +9,10 @@ use Enqueue\Test\ClassExtensionTrait;
 use Interop\Queue\Destination;
 use Interop\Queue\Exception\InvalidDestinationException;
 use Interop\Queue\Producer;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @group mongodb
- */
+#[Group('mongodb')]
 class MongodbProducerTest extends TestCase
 {
     use ClassExtensionTrait;
@@ -38,11 +37,11 @@ class MongodbProducerTest extends TestCase
     }
 
     /**
-     * @return \PHPUnit\Framework\MockObject\MockObject|MongodbContext
+     * @return \PHPUnit\Framework\MockObject\Stub|MongodbContext
      */
     private function createContextMock()
     {
-        return $this->createMock(MongodbContext::class);
+        return $this->createStub(MongodbContext::class);
     }
 }
 

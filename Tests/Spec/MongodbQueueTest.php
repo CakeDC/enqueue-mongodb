@@ -4,10 +4,9 @@ namespace Enqueue\Mongodb\Tests\Spec;
 
 use Enqueue\Mongodb\MongodbDestination;
 use Interop\Queue\Spec\QueueSpec;
+use PHPUnit\Framework\Attributes\Group;
 
-/**
- * @group mongodb
- */
+#[Group('mongodb')]
 class MongodbQueueTest extends QueueSpec
 {
     protected function createQueue()

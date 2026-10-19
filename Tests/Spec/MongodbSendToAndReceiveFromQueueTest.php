@@ -4,11 +4,10 @@ namespace Enqueue\Mongodb\Tests\Spec;
 
 use Enqueue\Test\MongodbExtensionTrait;
 use Interop\Queue\Spec\SendToAndReceiveFromQueueSpec;
+use PHPUnit\Framework\Attributes\Group;
 
-/**
- * @group functional
- * @group mongodb
- */
+#[Group('functional')]
+#[Group('mongodb')]
 class MongodbSendToAndReceiveFromQueueTest extends SendToAndReceiveFromQueueSpec
 {
     use MongodbExtensionTrait;

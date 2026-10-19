@@ -12,11 +12,10 @@ use Interop\Queue\Consumer;
 use Interop\Queue\Exception\InvalidMessageException;
 use Interop\Queue\Message;
 use MongoDB\Collection;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @group mongodb
- */
+#[Group('mongodb')]
 class MongodbConsumerTest extends TestCase
 {
     use ClassExtensionTrait;
@@ -30,7 +29,7 @@ class MongodbConsumerTest extends TestCase
     {
         $destination = new MongodbDestination('queue');
 
-        $consumer = new MongodbConsumer($this->createContextMock(), $destination);
+        $consumer = new MongodbConsumer($this->createStub(MongodbContext::class), $destination);
 
         $this->assertSame($destination, $consumer->getQueue());
     }
@@ -47,7 +46,7 @@ class MongodbConsumerTest extends TestCase
             ->with(['delivery_id' => 'theDeliveryId'])
         ;
 
-        $context = $this->createContextMock();
+        $context = $this->createStub(MongodbContext::class);
         $context
             ->method('getCollection')
             ->willReturn($collectionMock)
@@ -61,7 +60,7 @@ class MongodbConsumerTest extends TestCase
     {
         $destination = new MongodbDestination('queue');
 
-        $consumer = new MongodbConsumer($this->createContextMock(), $destination);
+        $consumer = new MongodbConsumer($this->createStub(MongodbContext::class), $destination);
         $consumer->setPollingInterval(123456);
 
         $this->assertEquals(123456, $consumer->getPollingInterval());
@@ -69,14 +68,14 @@ class MongodbConsumerTest extends TestCase
 
     public function testRedeliveryDelayDefaultsTo1200()
     {
-        $consumer = new MongodbConsumer($this->createContextMock(), new MongodbDestination('queue'));
+        $consumer = new MongodbConsumer($this->createStub(MongodbContext::class), new MongodbDestination('queue'));
 
         $this->assertEquals(1200, $consumer->getRedeliveryDelay());
     }
 
     public function testCouldSetAndGetRedeliveryDelay()
     {
-        $consumer = new MongodbConsumer($this->createContextMock(), new MongodbDestination('queue'));
+        $consumer = new MongodbConsumer($this->createStub(MongodbContext::class), new MongodbDestination('queue'));
         $consumer->setRedeliveryDelay(7200);
 
         $this->assertEquals(7200, $consumer->getRedeliveryDelay());
@@ -91,7 +90,7 @@ class MongodbConsumerTest extends TestCase
             'but it is Enqueue\Mongodb\Tests\InvalidMessage.'
         );
 
-        $consumer = new MongodbConsumer($this->createContextMock(), new MongodbDestination('queue'));
+        $consumer = new MongodbConsumer($this->createStub(MongodbContext::class), new MongodbDestination('queue'));
         $consumer->reject(new InvalidMessage());
     }
 
